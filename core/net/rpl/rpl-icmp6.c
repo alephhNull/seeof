@@ -223,6 +223,8 @@ dio_input(void)
   uip_ds6_nbr_t *nbr;
 
   memset(&dio, 0, sizeof(dio));
+
+  printf("metric is: %d", dio.mc.type);
   
 
   /* Set default values in case the DIO configuration option is missing. */
@@ -242,6 +244,7 @@ dio_input(void)
   PRINT6ADDR(&from);
   PRINTF("\n");
  
+  printf("salam donya\n");
 
   if((nbr = uip_ds6_nbr_lookup(&from)) == NULL) {
     if((nbr = uip_ds6_nbr_add(&from, (uip_lladdr_t *)
@@ -432,7 +435,7 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
   int pos;
   rpl_dag_t *dag = instance->current_dag;
   
-  
+
 #if !RPL_LEAF_ONLY
   uip_ipaddr_t addr;
 #endif /* !RPL_LEAF_ONLY */
