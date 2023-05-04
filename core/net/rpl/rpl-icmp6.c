@@ -224,8 +224,7 @@ dio_input(void)
 
   memset(&dio, 0, sizeof(dio));
 
-  printf("metric is: %d", dio.mc.type);
-  
+  printf("dio input\n");  
 
   /* Set default values in case the DIO configuration option is missing. */
   dio.dag_intdoubl = RPL_DIO_INTERVAL_DOUBLINGS;
@@ -244,7 +243,6 @@ dio_input(void)
   PRINT6ADDR(&from);
   PRINTF("\n");
  
-  printf("salam donya\n");
 
   if((nbr = uip_ds6_nbr_lookup(&from)) == NULL) {
     if((nbr = uip_ds6_nbr_add(&from, (uip_lladdr_t *)
@@ -347,6 +345,9 @@ dio_input(void)
       } else if(dio.mc.type == RPL_DAG_MC_ENERGY) {
         dio.mc.obj.energy.flags = buffer[i + 6];
         dio.mc.obj.energy.energy_est = buffer[i + 7];
+      } else if(dio.mc.type == RPL_DAG_MC_ERLT) {
+        dio.mc.obj.erlt.erlt = buffer[i + 6];
+        dio.mc.obj.erlt.etx = buffer[i + 7];
       } else {
        PRINTF("RPL: Unhandled DAG MC type: %u\n", (unsigned)dio.mc.type);
        return;
@@ -488,7 +489,6 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
 
   memcpy(buffer + pos, &dag->dag_id, sizeof(dag->dag_id));
   pos += 16;
-
 #if !RPL_LEAF_ONLY
   if(instance->mc.type != RPL_DAG_MC_NONE) {
     instance->of->update_metric_container(instance);
@@ -507,7 +507,11 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
       buffer[pos++] = 2;
       buffer[pos++] = instance->mc.obj.energy.flags;
       buffer[pos++] = instance->mc.obj.energy.energy_est;
-    } else {
+    } else if(instance->mc.type == RPL_DAG_MC_ERLT) {
+      buffer[pos++] = 2;
+      buffer[pos++] = instance->mc.obj.erlt.erlt;
+      buffer[pos++] = instance->mc.obj.erlt.etx;
+    }else {
       PRINTF("RPL: Unable to send DIO because of unhandled DAG MC type %u\n",
 	(unsigned)instance->mc.type);
       return;

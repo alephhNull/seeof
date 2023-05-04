@@ -59,7 +59,7 @@ static rpl_dag_t *best_dag(rpl_dag_t *, rpl_dag_t *);
 static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
 static void update_metric_container(rpl_instance_t *);
 
-rpl_of_t rpl_smartof = {
+rpl_of_t rpl_mrhof = {
   reset,
   neighbor_link_callback,
   best_parent,
@@ -106,7 +106,7 @@ calculate_path_metric(rpl_parent_t *p)
   return p->mc.obj.etx + (uint16_t)nbr->link_metric;
 #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
   return p->mc.obj.energy.energy_est + (uint16_t)nbr->link_metric;
-#elif RPL_DAG_MC == RPL_DAG_MC_ELRTL
+#elif RPL_DAG_MC == RPL_DAG_MC_ERLT
   return p->mc.obj.etx + (uint16_t)nbr->link_metric;
 #else
 #error "Unsupported RPL_DAG_MC configured. See rpl.h."
@@ -253,6 +253,8 @@ update_metric_container(rpl_instance_t *instance)
 #if RPL_DAG_MC == RPL_DAG_MC_ENERGY
   uint8_t type;
 #endif
+
+    printf("update metric container\n");
 
   instance->mc.type = RPL_DAG_MC;
   instance->mc.flags = RPL_DAG_MC_FLAG_P;
