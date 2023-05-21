@@ -46,9 +46,11 @@
 
 #define UDP_CLIENT_PORT 8775
 #define UDP_SERVER_PORT 5688
-
 #define DEBUG DEBUG_PRINT
 #include "net/ip/uip-debug.h"
+
+//////saba add//////
+static struct ctimer ct;
 
 static struct uip_udp_conn *client_conn;
 static uip_ipaddr_t server_ipaddr;
@@ -224,6 +226,10 @@ PROCESS_THREAD(udp_client_process, ev, data)
   PRINT6ADDR(&client_conn->ripaddr);
   PRINTF(" local/remote port %u/%u\n",
         UIP_HTONS(client_conn->lport), UIP_HTONS(client_conn->rport));
+
+///////saba add///////
+  void *ct_ptr = &ct;
+  ctimer_set(&ct, CLOCK_SECOND * 30, reset_children_packet_values, ct_ptr);
 
   while(1) {
     PROCESS_YIELD();

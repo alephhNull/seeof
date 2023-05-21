@@ -1740,6 +1740,21 @@ struct uip_ip_hdr {
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 };
 
+//////////////////saba add/////////////////////////
+/* The children packet tracker */
+
+#define MAX_CHILD_SIZE_CONTAINER 40
+
+typedef struct child_container {
+#if NETSTACK_CONF_WITH_IPV6
+  uip_ip6addr_t addr;
+#else
+  uip_ipaddr_t addr;
+#endif
+  int packets_count;
+}child_container;
+
+child_container children[MAX_CHILD_SIZE_CONTAINER];
 
 /*
  * IPv6 extension option headers: we are able to process
@@ -2231,3 +2246,30 @@ uint16_t uip_icmp6chksum(void);
 
 
 /** @} */
+#if NETSTACK_CONF_WITH_IPV6
+int get_child_count(uip_ip6addr_t *addr);
+
+int get_child_index(uip_ip6addr_t *addr);
+
+int is_child_exist(uip_ip6addr_t *addr);
+
+void add_to_children(uip_ip6addr_t *addr);
+
+void update_children(uip_ip6addr_t *addr);
+#else
+int get_child_count(uip_ipaddr_t *addr);
+
+int get_child_index(uip_ipaddr_t *addr);
+
+int is_child_exist(uip_ipaddr_t *addr);
+
+void add_to_children(uip_ipaddr_t *addr);
+
+void update_children(uip_ipaddr_t *addr);
+#endif
+
+void print_children(void);
+
+void reset_children_packet_values(void *ptr);
+
+int update_total_workload(void);

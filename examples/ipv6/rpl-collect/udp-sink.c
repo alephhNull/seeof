@@ -57,6 +57,9 @@
 #define UDP_CLIENT_PORT 8775
 #define UDP_SERVER_PORT 5688
 
+//////saba add//////
+static struct ctimer ct;
+
 static struct uip_udp_conn *server_conn;
 
 PROCESS(udp_server_process, "UDP server process");
@@ -173,6 +176,11 @@ PROCESS_THREAD(udp_server_process, ev, data)
   PRINT6ADDR(&server_conn->ripaddr);
   PRINTF(" local/remote port %u/%u\n", UIP_HTONS(server_conn->lport),
          UIP_HTONS(server_conn->rport));
+         
+///////saba add///////
+  void *ct_ptr = &ct;
+
+  ctimer_set(&ct, CLOCK_SECOND * 30, reset_children_packet_values, ct_ptr);
 
   while(1) {
     PROCESS_YIELD();
