@@ -1059,9 +1059,18 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
 #define uip_ip4addr_cmp(addr1, addr2) ((addr1)->u16[0] == (addr2)->u16[0] && \
 				      (addr1)->u16[1] == (addr2)->u16[1])
 #define uip_ip6addr_cmp(addr1, addr2) (memcmp(addr1, addr2, sizeof(uip_ip6addr_t)) == 0)
+#define uip_ip6addr_cmp_2(addr1, addr2) ((addr1)->u16[1] == (addr2)->u16[1] && \
+                                       (addr1)->u16[2] == (addr2)->u16[2] && \
+                                       (addr1)->u16[3] == (addr2)->u16[3] && \
+                                       (addr1)->u16[4] == (addr2)->u16[4] && \
+                                       (addr1)->u16[5] == (addr2)->u16[5] && \
+                                       (addr1)->u16[6] == (addr2)->u16[1] && \
+                                       (addr1)->u16[7] == (addr2)->u16[7])
+
 
 #if NETSTACK_CONF_WITH_IPV6
 #define uip_ipaddr_cmp(addr1, addr2) uip_ip6addr_cmp(addr1, addr2)
+#define uip_ipaddr_cmp2(addr1, addr2) uip_ip6addr_cmp_2(addr1, addr2)
 #else /* NETSTACK_CONF_WITH_IPV6 */
 #define uip_ipaddr_cmp(addr1, addr2) uip_ip4addr_cmp(addr1, addr2)
 #endif /* NETSTACK_CONF_WITH_IPV6 */

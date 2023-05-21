@@ -1138,7 +1138,6 @@ uip_process(uint8_t flag)
   }
 
   ////////////saba changed/////////
-  printf("received packets: %d\n", uip_stat.ip.recv);
 
   printf("IPv6 packet received from ");
   printf(" to ");
@@ -2422,7 +2421,6 @@ void print_children() {
   int i;
   for(i = 0; i < get_last_index(); i++) {
     printf(" %d- ", i);
-    PRINTMY(&children[i].addr);
     printf(" : %d\t", children[i].packets_count);
   }
   printf("\n");
@@ -2436,4 +2434,13 @@ void reset_children_packet_values(void *ptr) {
   
   struct ctimer* ct_ptr = ptr;
   ctimer_reset(ct_ptr);
+}
+
+int update_total_workload() {
+  int sum, i = 0;
+  for (i = 0; i < MAX_CHILD_SIZE_CONTAINER; i++)
+  {
+    sum += children[i].packets_count;
+  }
+  
 }
