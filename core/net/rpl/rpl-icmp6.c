@@ -223,9 +223,6 @@ dio_input(void)
   uip_ds6_nbr_t *nbr;
 
   memset(&dio, 0, sizeof(dio));
-
-  printf("dio input\n");  
-
   /* Set default values in case the DIO configuration option is missing. */
   dio.dag_intdoubl = RPL_DIO_INTERVAL_DOUBLINGS;
   dio.dag_intmin = RPL_DIO_INTERVAL_MIN;
@@ -345,9 +342,9 @@ dio_input(void)
       } else if(dio.mc.type == RPL_DAG_MC_ENERGY) {
         dio.mc.obj.energy.flags = buffer[i + 6];
         dio.mc.obj.energy.energy_est = buffer[i + 7];
-      } else if(dio.mc.type == RPL_DAG_MC_ERLT) {
-        dio.mc.obj.erlt.erlt = buffer[i + 6];
-        dio.mc.obj.erlt.etx = buffer[i + 7];
+      } else if(dio.mc.type == RPL_DAG_MC_CONGESTION) {
+        dio.mc.obj.congestion = get16(buffer, i + 6);
+        printf("metric value is: %u\n", (unsigned)dio.mc.obj.congestion);
       } else {
        PRINTF("RPL: Unhandled DAG MC type: %u\n", (unsigned)dio.mc.type);
        return;
@@ -507,10 +504,10 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
       buffer[pos++] = 2;
       buffer[pos++] = instance->mc.obj.energy.flags;
       buffer[pos++] = instance->mc.obj.energy.energy_est;
-    } else if(instance->mc.type == RPL_DAG_MC_ERLT) {
+    } else if(instance->mc.type == RPL_DAG_MC_CONGESTION) {
       buffer[pos++] = 2;
-      buffer[pos++] = instance->mc.obj.erlt.erlt;
-      buffer[pos++] = instance->mc.obj.erlt.etx;
+      set16(buffer, pos, instance->mc.obj.congestion);
+      pos+=2;
     }else {
       PRINTF("RPL: Unable to send DIO because of unhandled DAG MC type %u\n",
 	(unsigned)instance->mc.type);

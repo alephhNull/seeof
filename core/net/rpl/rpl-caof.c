@@ -59,7 +59,7 @@ static rpl_dag_t *best_dag(rpl_dag_t *, rpl_dag_t *);
 static rpl_rank_t calculate_rank(rpl_parent_t *, rpl_rank_t);
 static void update_metric_container(rpl_instance_t *);
 
-rpl_of_t rpl_seeof = {
+rpl_of_t rpl_caof = {
   reset,
   neighbor_link_callback,
   best_parent,
@@ -78,10 +78,6 @@ rpl_of_t rpl_seeof = {
 
 /* Reject parents that have a higher path cost than the following. */
 #define MAX_PATH_COST			100
-
-#define MAX_LT  200
-#define ETX_THRHESHOLD  10
-#define ERLT_THRESHOLD  150
 
 /*
  * The rank must differ more than 1/PARENT_SWITCH_THRESHOLD_DIV in order
@@ -110,8 +106,8 @@ calculate_path_metric(rpl_parent_t *p)
   return p->mc.obj.etx + (uint16_t)nbr->link_metric;
 #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
   return p->mc.obj.energy.energy_est + (uint16_t)nbr->link_metric;
-#elif RPL_DAG_MC == RPL_DAG_MC_ERLT
-  return p->mc.obj.etx + (uint16_t)nbr->link_metric;
+#elif RPL_DAG_MC == RPL_DAG_MC_CONGESTION
+  return p->mc.obj.congestion;
 #else
 #error "Unsupported RPL_DAG_MC configured. See rpl.h."
 #endif /* RPL_DAG_MC */
@@ -203,44 +199,41 @@ best_dag(rpl_dag_t *d1, rpl_dag_t *d2)
     return d1->grounded ? d1 : d2;
   }
 
-  if(d1->preference != d2->preference) {  
+  if(d1->preference != d2->preference) {
     return d1->preference > d2->preference ? d1 : d2;
   }
 
   return d1->rank < d2->rank ? d1 : d2;
 }
 
-static uint16_t
-calculate_erlt(rpl_parent_t *p) {
-  // mock erlt
-  return 120;
-}
-
-static uint16_t
-calculate_seeof_cost(uint16_t link_etx, uint16_t erlt) {
-  return link_etx / ETX_THRHESHOLD + (MAX_LT - erlt) / ERLT_THRESHOLD;
-}
-
 static rpl_parent_t *
 best_parent(rpl_parent_t *p1, rpl_parent_t *p2)
 {
+  rpl_dag_t *dag;
+  rpl_path_metric_t min_diff;
   rpl_path_metric_t p1_metric;
   rpl_path_metric_t p2_metric;
+  
 
-  uint16_t etx1;
-  uint16_t etx2;
+  dag = p1->dag; /* Both parents are in the same DAG. */
 
-  uint16_t erlt1;
-  uint16_t erlt2;
+  min_diff = RPL_DAG_MC_ETX_DIVISOR /
+             PARENT_SWITCH_THRESHOLD_DIV;
 
-  etx1 = calculate_path_metric(p1);
-  etx2 = calculate_path_metric(p2);
+  p1_metric = calculate_path_metric(p1);
+  p2_metric = calculate_path_metric(p2);
 
-  erlt1 = calculate_erlt(p1);
-  erlt2 = calculate_erlt(p2);
-
-  p1_metric = calculate_seeof_cost(etx1, erlt1);
-  p2_metric = calculate_seeof_cost(etx2, erlt2);
+  /* Maintain stability of the preferred parent in case of similar ranks. */
+  if(p1 == dag->preferred_parent || p2 == dag->preferred_parent) {
+    if(p1_metric < p2_metric + min_diff &&
+       p1_metric > p2_metric - min_diff) {
+      PRINTF("RPL: MRHOF hysteresis: %u <= %u <= %u\n",
+             p2_metric - min_diff,
+             p1_metric,
+             p2_metric + min_diff);
+      return dag->preferred_parent;
+    }
+  }
 
   return p1_metric < p2_metric ? p1 : p2;
 }
@@ -298,10 +291,9 @@ update_metric_container(rpl_instance_t *instance)
 
   instance->mc.obj.energy.flags = type << RPL_DAG_MC_ENERGY_TYPE;
   instance->mc.obj.energy.energy_est = path_metric;
-#elif RPL_DAG_MC == RPL_DAG_MC_ERLT
-  instance->mc.length = sizeof(instance->mc.obj.erlt);
-  instance->mc.obj.erlt.erlt = calculate_erlt(dag->preferred_parent);
-  instance->mc.obj.erlt.etx = path_metric;
+#elif RPL_DAG_MC == RPL_DAG_MC_CONGESTION
+  instance->mc.length = sizeof(instance->mc.obj.congestion);
+  instance->mc.obj.congestion = 666;
 #endif /* RPL_DAG_MC == RPL_DAG_MC_ETX */
 }
 #endif /* RPL_DAG_MC == RPL_DAG_MC_NONE */

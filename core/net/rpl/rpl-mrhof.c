@@ -106,7 +106,7 @@ calculate_path_metric(rpl_parent_t *p)
   return p->mc.obj.etx + (uint16_t)nbr->link_metric;
 #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
   return p->mc.obj.energy.energy_est + (uint16_t)nbr->link_metric;
-#elif RPL_DAG_MC == RPL_DAG_MC_ERLT
+#elif RPL_DAG_MC == RPL_DAG_MC_CONGESTION
   return p->mc.obj.etx + (uint16_t)nbr->link_metric;
 #else
 #error "Unsupported RPL_DAG_MC configured. See rpl.h."

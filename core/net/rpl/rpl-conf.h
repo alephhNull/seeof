@@ -55,7 +55,7 @@
 #ifdef RPL_CONF_DAG_MC
 #define RPL_DAG_MC RPL_CONF_DAG_MC
 #else
-#define RPL_DAG_MC RPL_DAG_MC_ERLT
+#define RPL_DAG_MC RPL_DAG_MC_CONGESTION
 #endif /* RPL_CONF_DAG_MC */
 
 /*
@@ -67,7 +67,7 @@
 #define RPL_OF RPL_CONF_OF
 #else
 /* ETX is the default objective function. */
-#define RPL_OF rpl_seeof
+#define RPL_OF rpl_caof
 #endif /* RPL_CONF_OF */
 
 /* This value decides which DAG instance we should participate in by default. */
