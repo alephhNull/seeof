@@ -344,7 +344,6 @@ dio_input(void)
         dio.mc.obj.energy.energy_est = buffer[i + 7];
       } else if(dio.mc.type == RPL_DAG_MC_CONGESTION) {
         dio.mc.obj.congestion = get16(buffer, i + 6);
-        printf("metric value is: %u\n", (unsigned)dio.mc.obj.congestion);
       } else {
        PRINTF("RPL: Unhandled DAG MC type: %u\n", (unsigned)dio.mc.type);
        return;

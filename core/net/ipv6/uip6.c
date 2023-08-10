@@ -79,6 +79,8 @@
 #include "net/ipv6/uip-ds6.h"
 #include "net/ipv6/multicast/uip-mcast6.h"
 
+#include "net/packetbuf.h"
+
 #include <string.h>
 
 /*---------------------------------------------------------------------------*/
@@ -1135,6 +1137,8 @@ uip_process(uint8_t flag)
     goto drop;
   }
   
+  update_children(&UIP_IP_BUF->srcipaddr);
+
   PRINTF("IPv6 packet received from ");
   PRINT6ADDR(&UIP_IP_BUF->srcipaddr);
   PRINTF(" to ");
@@ -2355,3 +2359,74 @@ uip_send(const void *data, int len)
 }
 /*---------------------------------------------------------------------------*/
 /** @} */
+
+
+///////////////saba add////////////////////
+/*---------------------------------------------------------------------------*/
+int get_last_index() {
+  int i;
+  for(i = 0; i < MAX_CHILD_SIZE_CONTAINER; i++) {
+    if (children[i].packets_count == 0) 
+      return i;
+  }
+  return MAX_CHILD_SIZE_CONTAINER;
+}
+
+/*---------------------------------------------------------------------------*/
+int get_child_count(uip_ip6addr_t *addr) {
+  int i;
+  for (i = 0; i < MAX_CHILD_SIZE_CONTAINER; i++) {
+    if (uip_ipaddr_cmp2(&children[i].addr, addr)) {
+      return children[i].packets_count;
+    }
+  }
+  return 0;
+}
+/*---------------------------------------------------------------------------*/
+int get_child_index(uip_ip6addr_t *addr) {
+  int i;
+  for (i = 0; i < MAX_CHILD_SIZE_CONTAINER; i++) {
+    if (uip_ipaddr_cmp2(&children[i].addr, addr)) {
+      return i;
+    }
+  }
+  return -1;
+}
+/*---------------------------------------------------------------------------*/
+int is_child_exist(uip_ip6addr_t *addr) {
+  return get_child_index(addr) != -1;
+}
+/*---------------------------------------------------------------------------*/
+void add_to_children(uip_ip6addr_t *addr) {
+  int last_stored_children_index = get_last_index();  
+  children[last_stored_children_index].addr = *addr;
+  children[last_stored_children_index].packets_count = 1;
+}
+/*---------------------------------------------------------------------------*/
+void update_children(uip_ip6addr_t *addr) {
+  if (!is_child_exist(addr)) {
+    add_to_children(addr);
+  } else {
+    children[get_child_index(addr)].packets_count++;
+  }
+}
+/*---------------------------------------------------------------------------*/
+void print_children() {
+  printf("received children: ");
+  int i;
+  for(i = 0; i < get_last_index(); i++) {
+    printf(" %d- ", i);
+    printf(" : %d\t", children[i].packets_count);
+  }
+  printf("\n");
+}
+/*---------------------------------------------------------------------------*/
+void reset_children_packet_values(void *ptr) {
+  int i;
+  for(i = 0; i < get_last_index(); i++) {
+    children[i].packets_count = 0;
+  }
+  
+  struct ctimer* ct_ptr = ptr;
+  ctimer_reset(ct_ptr);
+}

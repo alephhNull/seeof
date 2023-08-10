@@ -292,6 +292,7 @@ update_metric_container(rpl_instance_t *instance)
   instance->mc.obj.energy.flags = type << RPL_DAG_MC_ENERGY_TYPE;
   instance->mc.obj.energy.energy_est = path_metric;
 #elif RPL_DAG_MC == RPL_DAG_MC_CONGESTION
+  print_children();
   instance->mc.length = sizeof(instance->mc.obj.congestion);
   instance->mc.obj.congestion = 666;
 #endif /* RPL_DAG_MC == RPL_DAG_MC_ETX */

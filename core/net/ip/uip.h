@@ -1059,9 +1059,18 @@ struct uip_udp_conn *uip_udp_new(const uip_ipaddr_t *ripaddr, uint16_t rport);
 #define uip_ip4addr_cmp(addr1, addr2) ((addr1)->u16[0] == (addr2)->u16[0] && \
 				      (addr1)->u16[1] == (addr2)->u16[1])
 #define uip_ip6addr_cmp(addr1, addr2) (memcmp(addr1, addr2, sizeof(uip_ip6addr_t)) == 0)
+#define uip_ip6addr_cmp_2(addr1, addr2) ((addr1)->u16[1] == (addr2)->u16[1] && \
+                                       (addr1)->u16[2] == (addr2)->u16[2] && \
+                                       (addr1)->u16[3] == (addr2)->u16[3] && \
+                                       (addr1)->u16[4] == (addr2)->u16[4] && \
+                                       (addr1)->u16[5] == (addr2)->u16[5] && \
+                                       (addr1)->u16[6] == (addr2)->u16[1] && \
+                                       (addr1)->u16[7] == (addr2)->u16[7])
+
 
 #if NETSTACK_CONF_WITH_IPV6
 #define uip_ipaddr_cmp(addr1, addr2) uip_ip6addr_cmp(addr1, addr2)
+#define uip_ipaddr_cmp2(addr1, addr2) uip_ip6addr_cmp_2(addr1, addr2)
 #else /* NETSTACK_CONF_WITH_IPV6 */
 #define uip_ipaddr_cmp(addr1, addr2) uip_ip4addr_cmp(addr1, addr2)
 #endif /* NETSTACK_CONF_WITH_IPV6 */
@@ -1740,6 +1749,21 @@ struct uip_ip_hdr {
 #endif /* NETSTACK_CONF_WITH_IPV6 */
 };
 
+//////////////////saba add/////////////////////////
+/* The children packet tracker */
+
+#define MAX_CHILD_SIZE_CONTAINER 40
+
+typedef struct child_container {
+#if NETSTACK_CONF_WITH_IPV6
+  uip_ip6addr_t addr;
+#else
+  uip_ipaddr_t addr;
+#endif
+  int packets_count;
+}child_container;
+
+child_container children[MAX_CHILD_SIZE_CONTAINER];
 
 /*
  * IPv6 extension option headers: we are able to process
@@ -2231,3 +2255,31 @@ uint16_t uip_icmp6chksum(void);
 
 
 /** @} */
+
+#if NETSTACK_CONF_WITH_IPV6
+int get_child_count(uip_ip6addr_t *addr);
+
+int get_child_index(uip_ip6addr_t *addr);
+
+int is_child_exist(uip_ip6addr_t *addr);
+
+void add_to_children(uip_ip6addr_t *addr);
+
+void update_children(uip_ip6addr_t *addr);
+#else
+int get_child_count(uip_ipaddr_t *addr);
+
+int get_child_index(uip_ipaddr_t *addr);
+
+int is_child_exist(uip_ipaddr_t *addr);
+
+void add_to_children(uip_ipaddr_t *addr);
+
+void update_children(uip_ipaddr_t *addr);
+#endif
+
+void print_children(void);
+
+void reset_children_packet_values(void *ptr);
+
+int update_total_workload(void);
