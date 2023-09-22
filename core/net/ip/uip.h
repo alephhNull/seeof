@@ -2283,3 +2283,5 @@ void print_children(void);
 void reset_children_packet_values(void *ptr);
 
 int update_total_workload(void);
+
+int get_children_length(void);

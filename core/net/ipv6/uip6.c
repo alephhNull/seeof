@@ -2430,3 +2430,12 @@ void reset_children_packet_values(void *ptr) {
   struct ctimer* ct_ptr = ptr;
   ctimer_reset(ct_ptr);
 }
+
+int get_children_length() {
+  int i;
+  for(i = 0; i < MAX_CHILD_SIZE_CONTAINER; i++) {
+    if (children[i].packets_count == 0) 
+      return i;
+  }
+  return MAX_CHILD_SIZE_CONTAINER;
+}

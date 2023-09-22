@@ -343,7 +343,16 @@ dio_input(void)
         dio.mc.obj.energy.flags = buffer[i + 6];
         dio.mc.obj.energy.energy_est = buffer[i + 7];
       } else if(dio.mc.type == RPL_DAG_MC_CONGESTION) {
-        dio.mc.obj.congestion = get16(buffer, i + 6);
+        struct rpl_child_congestion *congestions = get16(buffer, i+6);
+        int i;
+        for (i = 0; i < 3; i++)
+        {
+          dio.mc.obj.congestions[i].addr = congestions[i].addr;
+          dio.mc.obj.congestions[i].congestion = congestions[i].congestion;
+          
+        }
+        printf("first child addr: %d, congestion: %d\n", congestions[2].addr, congestions[2].congestion);
+        
       } else {
        PRINTF("RPL: Unhandled DAG MC type: %u\n", (unsigned)dio.mc.type);
        return;
@@ -504,8 +513,8 @@ dio_output(rpl_instance_t *instance, uip_ipaddr_t *uc_addr)
       buffer[pos++] = instance->mc.obj.energy.flags;
       buffer[pos++] = instance->mc.obj.energy.energy_est;
     } else if(instance->mc.type == RPL_DAG_MC_CONGESTION) {
-      buffer[pos++] = 2;
-      set16(buffer, pos, instance->mc.obj.congestion);
+      buffer[pos++] = 4;
+      set16(buffer, pos, instance->mc.obj.congestions);
       pos+=2;
     }else {
       PRINTF("RPL: Unable to send DIO because of unhandled DAG MC type %u\n",

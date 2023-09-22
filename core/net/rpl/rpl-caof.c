@@ -51,6 +51,7 @@
 
 #define DEBUG DEBUG_NONE
 #include "net/ip/uip-debug.h"
+#include <stdlib.h>
 
 static void reset(rpl_dag_t *);
 static void neighbor_link_callback(rpl_parent_t *, int, int);
@@ -87,6 +88,17 @@ rpl_of_t rpl_caof = {
 
 typedef uint16_t rpl_path_metric_t;
 
+#if RPL_DAG_MC == RPL_DAG_MC_CONGESTION
+static double calculate_child_congestion() {
+  return 2;
+}
+
+static uint8_t get_child_id() {
+  return 1
+}
+
+#endif
+
 static rpl_path_metric_t
 calculate_path_metric(rpl_parent_t *p)
 {
@@ -107,7 +119,7 @@ calculate_path_metric(rpl_parent_t *p)
 #elif RPL_DAG_MC == RPL_DAG_MC_ENERGY
   return p->mc.obj.energy.energy_est + (uint16_t)nbr->link_metric;
 #elif RPL_DAG_MC == RPL_DAG_MC_CONGESTION
-  return p->mc.obj.congestion;
+  return calculate_child_congestion();
 #else
 #error "Unsupported RPL_DAG_MC configured. See rpl.h."
 #endif /* RPL_DAG_MC */
@@ -292,9 +304,14 @@ update_metric_container(rpl_instance_t *instance)
   instance->mc.obj.energy.flags = type << RPL_DAG_MC_ENERGY_TYPE;
   instance->mc.obj.energy.energy_est = path_metric;
 #elif RPL_DAG_MC == RPL_DAG_MC_CONGESTION
-  print_children();
-  instance->mc.length = sizeof(instance->mc.obj.congestion);
-  instance->mc.obj.congestion = 666;
+  int n_children = get_children_length();
+  instance->mc.length = n_children;
+  int i = 0;
+  for (i = 0; i < n_children; i++){
+    child_container child = children[i];
+    instance->mc.obj.congestions[i].nodeId = get_child_id();
+    instance->mc.obj.congestions[i].congestion = path_metric;
+  }
 #endif /* RPL_DAG_MC == RPL_DAG_MC_ETX */
 }
 #endif /* RPL_DAG_MC == RPL_DAG_MC_NONE */

@@ -89,6 +89,11 @@ struct rpl_metric_object_energy {
   uint8_t energy_est;
 };
 
+struct rpl_child_congestion
+{
+  uint8_t nodeId;
+  float congestion;
+};
 
 /* Logical representation of a DAG Metric Container. */
 struct rpl_metric_container {
@@ -99,7 +104,7 @@ struct rpl_metric_container {
   uint8_t length;
   union metric_object {
     struct rpl_metric_object_energy energy;
-    uint16_t congestion;
+    struct rpl_child_congestion congestions [10];
     uint16_t etx;
   } obj;
 };
